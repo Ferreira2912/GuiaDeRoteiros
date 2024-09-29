@@ -47,6 +47,48 @@ function authorizeRoles(...allowedRoles) {
   };
 }
 
+async function logEvent(event, details) {
+  try {
+    // Estrutura do log
+    const logEntry = {
+      date: new Date(),
+      event: event,  // Nome do evento (ex: "Criação de Usuário", "Login")
+      details: details // Detalhes do evento
+    };
+
+    // Inserir log na coleção 'eventLogs'
+    await db.collection('eventLogs').insertOne(logEntry);
+    console.log("Log registrado com sucesso:", logEntry);
+  } catch (error) {
+    console.error("Erro ao registrar log:", error);
+  }
+}
+
+// Endpoint para buscar logs de eventos
+app.get('/event-logs', authenticateToken, authorizeRoles('dev'), async (req, res) => {
+  const { startDate, endDate } = req.query;
+
+  const filter = {};
+
+  if (startDate && endDate) {
+    filter.date = {
+      $gte: new Date(startDate),
+      $lte: new Date(endDate),
+    };
+  } else if (startDate) {
+    filter.date = { $gte: new Date(startDate) };
+  } else if (endDate) {
+    filter.date = { $lte: new Date(endDate) };
+  }
+
+  try {
+    const logs = await db.collection('eventLogs').find(filter).toArray(); // Busca os logs filtrados por data
+    res.status(200).json(logs);
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar logs de eventos', error });
+  }
+});
+
 app.get('/status', async (req, res) => {
   // Simulação do tempo de resposta (pode ser baseado em uma chamada real)
   const start = Date.now();
@@ -112,6 +154,10 @@ app.post('/register', async (req, res) => {
     };
 
     await db.collection('users').insertOne(newUser);
+
+    // Registrar log de criação de usuário
+    await logEvent("Criação de Usuário", `O usuário ${username} foi criado com sucesso.`);
+
     res.status(201).json({ message: 'Usuário registrado com sucesso!' });
   } catch (error) {
     res.status(500).json({ message: 'Erro ao registrar usuário', error });
@@ -125,10 +171,16 @@ app.post('/login', async (req, res) => {
   try {
     const user = await db.collection('users').findOne({ username });
     if (!user || !bcrypt.compareSync(password, user.password)) {
+      // Registrar log de falha no login
+      await logEvent("Falha no Login", `Tentativa de login falhou para o usuário ${username}.`);
       return res.status(400).json({ message: 'Credenciais inválidas' });
     }
 
     const accessToken = jwt.sign({ username: user.username, role: user.role }, secret, { expiresIn: '1h' });
+
+    // Registrar log de sucesso no login
+    await logEvent("Login Bem-Sucedido", `O usuário ${username} fez login com sucesso.`);
+
     res.json({ accessToken, role: user.role });
   } catch (error) {
     res.status(500).json({ message: 'Erro ao realizar login', error });

@@ -43,3 +43,63 @@
   border-radius: 8px;
   color: #00ff7f; /* Indicador de métrica em verde */
 }
+
+/* Estilo básico para o status do sistema */
+.status-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.status-container span {
+  font-size: 18px;
+}
+
+.status-container p {
+  margin: 5px 0;
+  color: #ccc;
+}
+
+/* Adiciona as cores para os status do servidor */
+.green {
+  color: green;
+}
+
+.orange {
+  color: orange;
+
+}
+
+.red {
+  color: red;
+}
+
+.card form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card form input,
+.card form select {
+  padding: 10px;
+  font-size: 16px;
+}
+
+.card form button {
+  padding: 10px;
+  font-size: 16px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.card form button:hover {
+  background-color: #45a049;
+}
+
+.card p {
+  margin-top: 10px;
+  color: #333;
+}

@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import UserHome from './pages/UserHome';
 import CeoHome from './pages/CeoHome';
 import DevHome from './pages/DevHome';
+import UserManagement from './pages/UserManagement'; // Certifique-se de importar o componente
+import Header from './pages/components/Header'; // Importando o Header
 
-function App() {
+// Componente para condicionalmente exibir o Header
+function AppWithHeader() {
+  const location = useLocation(); // Hook useLocation dentro de um Router
+
   const [token, setToken] = useState(null);
   const [role, setRole] = useState(null);
 
@@ -34,18 +39,22 @@ function App() {
   // Se não houver token, redireciona para a página de login
   if (!token) {
     return (
-      <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="*" element={<Navigate to="/login" />} />
-        </Routes>
-      </Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="*" element={<Navigate to="/login" />} />
+      </Routes>
     );
   }
 
+  // Verifica se a rota atual é de login ou registro
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+
   return (
-    <Router>
+    <>
+      {/* Exibe o Header se não estiver nas páginas de login ou registro */}
+      {!isAuthPage && <Header role={role} />}
+
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -53,9 +62,19 @@ function App() {
         <Route path="/user-home" element={<UserHome />} />
         <Route path="/ceo-home" element={<CeoHome />} />
         <Route path="/dev-home" element={<DevHome />} />
+        {/* Adicionando a rota para o gerenciamento de usuários */}
+        <Route path="/user-management" element={<UserManagement />} />
         {/* Redireciona para a página correta com base no papel */}
         <Route path="*" element={redirectToHome()} />
       </Routes>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppWithHeader />
     </Router>
   );
 }

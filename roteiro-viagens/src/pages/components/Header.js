@@ -1,7 +1,8 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import "./Header.css";
 
-function Header() {
+function Header({ role }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleMenu = () => {
@@ -11,7 +12,7 @@ function Header() {
   const handleLogout = () => {
     // Lógica de logout (excluir token, redirecionar para login, etc.)
     localStorage.removeItem("token");
-    window.location.href = "/login";
+    window.location.href = "/login"; // Redireciona para a página de login
   };
 
   return (
@@ -19,13 +20,20 @@ function Header() {
       <div className="header-left">
         <img src="/path-to-your-logo.png" alt="Logo" className="logo" />
       </div>
+
       <div className="header-center">
         <nav>
-          <a href="#dashboard">Dashboard</a>
-          <a href="#settings">Configurações</a>
-          <a href="#support">Suporte</a>
+          <Link to="/dashboard">Dashboard</Link>
+          <Link to="/settings">Configurações</Link>
+          <Link to="/support">Suporte</Link>
+
+          {/* Mostrar o link de gerenciamento de usuários apenas para desenvolvedores */}
+          {role === "dev" && (
+            <Link to="/user-management">Gerenciamento de Usuários</Link>
+          )}
         </nav>
       </div>
+
       <div className="header-right">
         <img
           src="/path-to-profile-picture.jpg"

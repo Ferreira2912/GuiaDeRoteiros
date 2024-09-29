@@ -1,0 +1,55 @@
+/* Estilos gerais da página de registro */
+.register-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #1d1d1d; /* Cor de fundo cinza escuro */
+    font-family: Arial, sans-serif;
+  }
+  
+  /* Caixa de registro */
+  .register-box {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 350px;
+    text-align: center;
+  }
+  
+  /* Estilos do título */
+  .register-box h2 {
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #333;
+  }
+  
+  /* Estilo dos inputs de registro */
+  input, select {
+    width: calc(100% - 20px); /* Ajusta a largura para descontar padding e bordas */
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    box-sizing: border-box; /* Garante que padding e bordas estejam incluídos no tamanho */
+  }
+  
+  /* Estilo do botão de registro */
+  button.register-button {
+    width: 100%;
+    padding: 10px;
+    background-color: #0a3571;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 20px;
+  }
+  
+  button.register-button:hover {
+    background-color: #083d6b;
+  }
+  

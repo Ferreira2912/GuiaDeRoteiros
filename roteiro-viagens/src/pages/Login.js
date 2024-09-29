@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Login.css';
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -12,12 +12,18 @@ function Login() {
   const login = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/login', { username, password });
+      const response = await axios.post('http://localhost:5000/login', {
+        username,
+        password,
+      });
+      
+      // Armazena o token JWT e o papel (role) no localStorage
       localStorage.setItem('token', response.data.accessToken);
       localStorage.setItem('role', response.data.role);
+
       setError('');
 
-      // Redirecionar com base no tipo de usuário
+      // Redireciona o usuário com base no papel (role)
       if (response.data.role === 'ceo') {
         navigate('/ceo-home');
       } else if (response.data.role === 'dev') {
@@ -54,12 +60,11 @@ function Login() {
           <button className="login-button" type="submit">Entrar</button>
         </form>
         {error && <p style={{ color: 'red' }}>{error}</p>}
-
+        
+        {/* Botão de redirecionamento para a página de registro */}
         <button className="register-button" onClick={handleRegisterRedirect}>
           Registrar-se
         </button>
-
-        <span className="forgot-password">Esqueceu sua senha?</span>
       </div>
     </div>
   );

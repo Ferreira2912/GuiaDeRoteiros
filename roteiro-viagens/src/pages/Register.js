@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import './Register.css';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
 function Register() {
   const [username, setUsername] = useState('');
@@ -12,18 +12,33 @@ function Register() {
 
   const register = async (e) => {
     e.preventDefault();
+
+    // Verificando os dados que estão sendo enviados
+    console.log({
+      username,
+      password,
+      role: 'user', // Verificando os dados enviados
+    });
+
     try {
-      // O papel é sempre "user" por padrão
-      const role = 'user';
-      await axios.post('http://localhost:5000/register', { username, password, role });
+      const response = await axios.post('http://localhost:5000/register', {
+        username,
+        password,
+        role: 'user' // Definir o papel como 'user' por padrão
+      });
+
       setSuccess('Usuário registrado com sucesso!');
       setError('');
       setUsername('');
       setPassword('');
+
+      // Redireciona para a página de login após o registro
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
       
-      // Redirecionar para a página do usuário após o registro
-      navigate('/user-home');
     } catch (error) {
+      console.error(error.response.data); // Exibe o erro detalhado no console
       setError('Erro ao registrar. Tente novamente.');
     }
   };

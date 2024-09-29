@@ -2,19 +2,26 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const { MongoClient } = require('mongodb');
 
 const app = express();
 const port = 5000;
-const secret = 'sua_chave_secreta'; // Em produção, use uma chave mais segura
+const secret = '124151223'; // Em produção, use uma chave mais segura
+const uri = "mongodb+srv://usuario:senha@bdguia.mtldo.mongodb.net/?retryWrites=true&w=majority&appName=bdguia";
+let db; // Declarando a variável db aqui para que possa ser usada nas rotas
 
 app.use(cors());
 app.use(express.json());
 
-// Armazenamento temporário de usuários (para um banco de dados, isso seria substituído)
-let users = [
-  { id: 2, username: 'ceo', password: bcrypt.hashSync('password2', 10), role: 'ceo' },
-  { id: 1, username: 'dev', password: bcrypt.hashSync('password3', 10), role: 'dev' },
-];
+// Conectar ao MongoDB
+MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(client => {
+    db = client.db('bdguia'); // Agora a variável db é atualizada corretamente
+    console.log('Conectado ao MongoDB com sucesso');
+  })
+  .catch(err => {
+    console.error('Erro ao conectar ao MongoDB:', err);
+  });
 
 // Middleware para autenticar o usuário e verificar o token JWT
 function authenticateToken(req, res, next) {
@@ -40,51 +47,55 @@ function authorizeRoles(...allowedRoles) {
 }
 
 // Rota de registro de novos usuários
-app.post('/register', (req, res) => {
+app.post('/register', async (req, res) => {
   const { username, password, role } = req.body;
 
-  // Verifica se o usuário já existe
-  const userExists = users.find(u => u.username === username);
-  if (userExists) {
-    return res.status(400).json({ message: 'Usuário já existe' });
+  try {
+    const userExists = await db.collection('users').findOne({ username });
+    if (userExists) {
+      return res.status(400).json({ message: 'Usuário já existe' });
+    }
+
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    const newUser = {
+      username,
+      password: hashedPassword,
+      role
+    };
+
+    await db.collection('users').insertOne(newUser);
+    res.status(201).json({ message: 'Usuário registrado com sucesso!' });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao registrar usuário', error });
   }
-
-  // Criptografar a senha e adicionar o novo usuário
-  const hashedPassword = bcrypt.hashSync(password, 10);
-  const newUser = { id: users.length + 1, username, password: hashedPassword, role };
-  users.push(newUser);
-
-  res.status(201).json({ message: 'Usuário registrado com sucesso!' });
 });
 
 // Rota de login
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
-  // Verifica se o usuário existe
-  const user = users.find(u => u.username === username);
-  if (!user || !bcrypt.compareSync(password, user.password)) {
-    return res.status(400).json({ message: 'Credenciais inválidas' });
-  }
+  try {
+    const user = await db.collection('users').findOne({ username });
+    if (!user || !bcrypt.compareSync(password, user.password)) {
+      return res.status(400).json({ message: 'Credenciais inválidas' });
+    }
 
-  // Gerar o token JWT com o papel do usuário
-  const accessToken = jwt.sign({ username: user.username, role: user.role }, secret, { expiresIn: '1h' });
-  res.json({ accessToken, role: user.role });
+    const accessToken = jwt.sign({ username: user.username, role: user.role }, secret, { expiresIn: '1h' });
+    res.json({ accessToken, role: user.role });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao realizar login', error });
+  }
 });
 
 // Rotas protegidas para cada tipo de papel (role)
-
-// Rota para usuários comuns
 app.get('/user-home', authenticateToken, authorizeRoles('user'), (req, res) => {
   res.json({ message: 'Bem-vindo, usuário!' });
 });
 
-// Rota para o CEO
 app.get('/ceo-home', authenticateToken, authorizeRoles('ceo'), (req, res) => {
   res.json({ message: 'Bem-vindo, CEO!' });
 });
 
-// Rota para desenvolvedores
 app.get('/dev-home', authenticateToken, authorizeRoles('dev'), (req, res) => {
   res.json({ message: 'Bem-vindo, desenvolvedor!' });
 });
